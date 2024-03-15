@@ -129,7 +129,7 @@ main_frame = tk.Frame(root)
 main_frame.pack(fill=tk.BOTH, expand=True)
 
 # 创建故障类型显示标签
-fault_type_label = tk.Label(main_frame, textvariable=cls, font=('Times', 20, 'italic'))
+fault_type_label = tk.Label(main_frame, textvariable=cls, font=('Times', 60, 'italic'))
 cls.set("没有检测输入")  # 初始化显示
 fault_type_label.pack(side=tk.TOP, pady=5)
 
