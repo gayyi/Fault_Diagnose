@@ -3,7 +3,7 @@ from communication import save_first_last_files, detect_new_files
 from decode import tim_to_data, get_sample
 import numpy as np
 import tkinter as tk
-from tkinter import ttk
+#from tkinter import ttk
 import tkinter.font as tkFont
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -13,7 +13,7 @@ import sys
 import os
 import torch
 # 假设这里有communication, detect_new_files, tim_to_data, get_sample的相关代码
-model_path = "C:\\Users\\lijingyidelianxiang\\Desktop\\Communication\\demo\\saved_models\\7-CNN_4conv_2fc-424-0.936.pth"
+model_path = "C:\\Users\\lijingyidelianxiang\\Desktop\\Communication\\demo\\saved_models\\2-CNN_2conv_2fc-361-0.972.pth"
 last_seen_files_dap = []  # Last detected file list, initially empty
 last_seen_files_tim = []
 new_file_dap = []
@@ -22,6 +22,7 @@ model = torch.load(model_path, map_location=torch.device('cpu'))
 arr = None
 cls = None  # No longer create StringVar object here
 is_diagnosing = False  # Flag variable to control the diagnostic process
+validity = 0 #here for test the validity of input data
 
 def find_max_column_sum(arr):
     column_sums = np.sum(arr, axis=0)
@@ -35,6 +36,14 @@ def get_path(relative_path):
     except AttributeError:
         base_path = os.path.abspath(".")
 
+def check_array_validity(arr,threshold):
+    """test the validity of the given arr"""
+    #arr = tim_to_data()
+    if np.any(arr > threshold):
+        return 'This array is valid'
+    else:
+        return 'This array is invalid'
+    
 def update_plot(frame):
     global arr
     if arr is not None:
@@ -73,6 +82,7 @@ def periodic_task():
         if new_file_dap != last_file_dap and new_file_dap:
             if new_file_tim != last_file_tim and new_file_tim:
                 arr = tim_to_data(new_file_tim[-1], new_file_dap[-1])
+                validity = check_array_validity(arr, 0.05)
                 py_tensor = get_sample(arr, sp_num=8, sp_len=2048)
 
                 model.eval()
@@ -84,6 +94,7 @@ def periodic_task():
                     output_np = output_tensor.cpu().numpy()
                     max_sum_index, max_sum_value = find_max_column_sum(output_np)
 
+                if validity == 1:
                     if max_sum_index == 0:
                         cls.set('Normal')
                     elif max_sum_index == 1:
@@ -92,6 +103,7 @@ def periodic_task():
                         cls.set('Inner Race')
                     elif max_sum_index == 3:
                         cls.set('Outer Race')
+                else: cls.set('No valid input data')
 
     root.after(1000, periodic_task)  # Execute every 1000 milliseconds (1 second)
 
